@@ -1,0 +1,16 @@
+[tool.poetry]
+name = "sapeur"
+version = "0.1.0"
+description = ""
+authors = ["Aleksandr Zuev <zuev08@gmail.com>"]
+readme = "README.md"
+packages = [{include = "sapeur", from = "src"}]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+arcade = "^2.6.16"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
