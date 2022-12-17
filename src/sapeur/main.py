@@ -6,7 +6,7 @@ grid on-screen.
 """
 import arcade
 
-from sapeur.graphics.cells import create_cells_triangles, create_cells_upper_triangles
+from sapeur.graphics.cells import create_cells_triangles
 
 # Set how many rows and columns we will have
 ROW_COUNT = 10
@@ -54,7 +54,7 @@ class MyGame(arcade.Window):
             *create_cells_triangles(ROW_COUNT, COLUMN_COUNT, WIDTH, HEIGHT, color=arcade.color.GRAY)
         ))
         self.shape_list.append(arcade.create_triangles_filled_with_colors(
-            *create_cells_upper_triangles(ROW_COUNT, COLUMN_COUNT, WIDTH, HEIGHT, color=arcade.color.WHITE)
+            *create_cells_triangles(ROW_COUNT, COLUMN_COUNT, WIDTH, HEIGHT, upper=True, color=arcade.color.WHITE)
         ))
 
     def on_draw(self):
