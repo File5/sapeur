@@ -6,7 +6,7 @@ grid on-screen.
 """
 import arcade
 
-from sapeur.graphics.cells import create_cells_triangles
+from sapeur.graphics.cells import create_cells_triangles, create_cells_rectangles
 
 # Set how many rows and columns we will have
 ROW_COUNT = 10
@@ -50,24 +50,11 @@ class MyGame(arcade.Window):
             *create_cells_triangles(ROW_COUNT, COLUMN_COUNT, WIDTH, HEIGHT, upper=True, color=arcade.color.WHITE)
         ))
         self.sprite_list = arcade.SpriteList()
-        for row in range(ROW_COUNT):
-            for column in range(COLUMN_COUNT):
-                # Figure out what color to draw the box
-                if self.grid[row][column] == 1:
-                    color = arcade.color.GREEN
-                else:
-                    color = arcade.color.DARK_GRAY
-
-                # Do the math to figure out where the box is
-                x = (MARGIN + WIDTH) * column + MARGIN + WIDTH // 2
-                y = (MARGIN + HEIGHT) * row + MARGIN + HEIGHT // 2
-                rect = arcade.SpriteSolidColor(WIDTH - IMARGIN * 2, HEIGHT - IMARGIN * 2, arcade.color.WHITE)
-                rect.center_x = x
-                rect.center_y = y
-                rect.color = color
-                self.rect_grid[row][column] = rect
-                self.sprite_list.append(rect)
-
+        create_cells_rectangles(
+            self.sprite_list, self.rect_grid,
+            ROW_COUNT, COLUMN_COUNT, WIDTH, HEIGHT, IMARGIN,
+            color=arcade.color.DARK_GRAY
+        )
 
     def on_draw(self):
         """

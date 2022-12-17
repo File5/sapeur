@@ -30,3 +30,20 @@ def create_cells_triangles(row_count, column_count, width, height, upper=False, 
                 else:
                     point_list.extend(((x, y), (x + width, y + height), middle_point)[::1 if row % 2 == 0 else -1])
     return point_list, [color] * len(point_list)
+
+
+def create_cells_rectangles(
+        sprite_list, rect_grid,
+        row_count, column_count, width, height, imargin,
+        color=arcade.color.DARK_GRAY):
+    for row in range(row_count):
+        for column in range(column_count):
+            # Do the math to figure out where the box is
+            x = (width) * column + width // 2
+            y = (height) * row + height // 2
+            rect = arcade.SpriteSolidColor(width - imargin * 2, height - imargin * 2, arcade.color.WHITE)
+            rect.center_x = x
+            rect.center_y = y
+            rect.color = color
+            rect_grid[row][column] = rect
+            sprite_list.append(rect)
