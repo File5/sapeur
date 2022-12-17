@@ -36,15 +36,8 @@ class MyGame(arcade.Window):
         Set up the application.
         """
         super().__init__(width, height)
-        # Create a 2 dimensional array. A two dimensional
-        # array is simply a list of lists.
-        self.grid = []
-        for row in range(ROW_COUNT):
-            # Add an empty array that will hold each cell
-            # in this row
-            self.grid.append([])
-            for column in range(COLUMN_COUNT):
-                self.grid[row].append(0)  # Append a cell
+        self.grid = [[0 for x in range(COLUMN_COUNT)] for y in range(ROW_COUNT)]
+        self.rect_grid = [[None for x in range(COLUMN_COUNT)] for y in range(ROW_COUNT)]
 
         arcade.set_background_color(arcade.color.BLACK)
 
@@ -56,18 +49,7 @@ class MyGame(arcade.Window):
         self.shape_list.append(arcade.create_triangles_filled_with_colors(
             *create_cells_triangles(ROW_COUNT, COLUMN_COUNT, WIDTH, HEIGHT, upper=True, color=arcade.color.WHITE)
         ))
-
-    def on_draw(self):
-        """
-        Render the screen.
-        """
-
-        # This command has to happen before we start drawing
-        arcade.start_render()
-
-        # Draw the grid
-        self.shape_list.draw()
-
+        self.sprite_list = arcade.SpriteList()
         for row in range(ROW_COUNT):
             for column in range(COLUMN_COUNT):
                 # Figure out what color to draw the box
@@ -79,8 +61,25 @@ class MyGame(arcade.Window):
                 # Do the math to figure out where the box is
                 x = (MARGIN + WIDTH) * column + MARGIN + WIDTH // 2
                 y = (MARGIN + HEIGHT) * row + MARGIN + HEIGHT // 2
-                arcade.draw_rectangle_filled(x, y, WIDTH - IMARGIN * 2, HEIGHT - IMARGIN * 2, color)
+                rect = arcade.SpriteSolidColor(WIDTH - IMARGIN * 2, HEIGHT - IMARGIN * 2, arcade.color.WHITE)
+                rect.center_x = x
+                rect.center_y = y
+                rect.color = color
+                self.rect_grid[row][column] = rect
+                self.sprite_list.append(rect)
 
+
+    def on_draw(self):
+        """
+        Render the screen.
+        """
+
+        self.clear()
+        # This command has to happen before we start drawing
+        arcade.start_render()
+        # Draw the grid
+        self.shape_list.draw()
+        self.sprite_list.draw()
         arcade.draw_text(f"FPS: {arcade.get_fps():.2f}", 10, 20, arcade.color.RED, 14)
 
     def on_mouse_press(self, x, y, button, modifiers):
@@ -101,8 +100,10 @@ class MyGame(arcade.Window):
             # Flip the location between 1 and 0.
             if self.grid[row][column] == 0:
                 self.grid[row][column] = 1
+                self.rect_grid[row][column].color = arcade.color.GREEN
             else:
                 self.grid[row][column] = 0
+                self.rect_grid[row][column].color = arcade.color.DARK_GRAY
 
 
 def main():
