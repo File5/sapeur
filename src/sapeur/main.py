@@ -6,6 +6,8 @@ grid on-screen.
 """
 import arcade
 
+from sapeur.graphics.cells import create_cells_triangles, create_cells_upper_triangles
+
 # Set how many rows and columns we will have
 ROW_COUNT = 10
 COLUMN_COUNT = 10
@@ -46,6 +48,15 @@ class MyGame(arcade.Window):
 
         arcade.set_background_color(arcade.color.BLACK)
 
+    def setup(self):
+        self.shape_list = arcade.ShapeElementList()
+        self.shape_list.append(arcade.create_triangles_filled_with_colors(
+            *create_cells_triangles(ROW_COUNT, COLUMN_COUNT, WIDTH, HEIGHT, color=arcade.color.GRAY)
+        ))
+        self.shape_list.append(arcade.create_triangles_filled_with_colors(
+            *create_cells_upper_triangles(ROW_COUNT, COLUMN_COUNT, WIDTH, HEIGHT, color=arcade.color.WHITE)
+        ))
+
     def on_draw(self):
         """
         Render the screen.
@@ -55,6 +66,8 @@ class MyGame(arcade.Window):
         arcade.start_render()
 
         # Draw the grid
+        self.shape_list.draw()
+
         for row in range(ROW_COUNT):
             for column in range(COLUMN_COUNT):
                 # Figure out what color to draw the box
@@ -64,15 +77,11 @@ class MyGame(arcade.Window):
                     color = arcade.color.DARK_GRAY
 
                 # Do the math to figure out where the box is
-                x = (MARGIN + WIDTH) * column + MARGIN
-                y = (MARGIN + HEIGHT) * row + MARGIN
-
-                # Draw the box
-                arcade.draw_triangle_filled(x, y, x + WIDTH, y, x + WIDTH, y + HEIGHT, arcade.color.GRAY)
-                arcade.draw_triangle_filled(x, y, x, y + HEIGHT, x + WIDTH, y + HEIGHT, arcade.color.WHITE)
-                x += WIDTH // 2
-                y += HEIGHT // 2
+                x = (MARGIN + WIDTH) * column + MARGIN + WIDTH // 2
+                y = (MARGIN + HEIGHT) * row + MARGIN + HEIGHT // 2
                 arcade.draw_rectangle_filled(x, y, WIDTH - IMARGIN * 2, HEIGHT - IMARGIN * 2, color)
+
+        arcade.draw_text(f"FPS: {arcade.get_fps():.2f}", 10, 20, arcade.color.RED, 14)
 
     def on_mouse_press(self, x, y, button, modifiers):
         """
@@ -97,8 +106,9 @@ class MyGame(arcade.Window):
 
 
 def main():
-
+    arcade.enable_timings()
     window = MyGame(SCREEN_WIDTH, SCREEN_HEIGHT)
+    window.setup()
     arcade.run()
 
 
