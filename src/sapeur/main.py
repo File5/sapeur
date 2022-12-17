@@ -11,12 +11,13 @@ ROW_COUNT = 10
 COLUMN_COUNT = 10
 
 # This sets the WIDTH and HEIGHT of each grid location
-WIDTH = 20
-HEIGHT = 20
+WIDTH = 30
+HEIGHT = WIDTH
 
 # This sets the margin between each cell
 # and on the edges of the screen.
-MARGIN = 5
+MARGIN = 0
+IMARGIN = 5
 
 # Do the math to figure out our screen dimensions
 SCREEN_WIDTH = (WIDTH + MARGIN) * COLUMN_COUNT + MARGIN
@@ -60,14 +61,18 @@ class MyGame(arcade.Window):
                 if self.grid[row][column] == 1:
                     color = arcade.color.GREEN
                 else:
-                    color = arcade.color.WHITE
+                    color = arcade.color.DARK_GRAY
 
                 # Do the math to figure out where the box is
-                x = (MARGIN + WIDTH) * column + MARGIN + WIDTH // 2
-                y = (MARGIN + HEIGHT) * row + MARGIN + HEIGHT // 2
+                x = (MARGIN + WIDTH) * column + MARGIN
+                y = (MARGIN + HEIGHT) * row + MARGIN
 
                 # Draw the box
-                arcade.draw_rectangle_filled(x, y, WIDTH, HEIGHT, color)
+                arcade.draw_triangle_filled(x, y, x + WIDTH, y, x + WIDTH, y + HEIGHT, arcade.color.GRAY)
+                arcade.draw_triangle_filled(x, y, x, y + HEIGHT, x + WIDTH, y + HEIGHT, arcade.color.WHITE)
+                x += WIDTH // 2
+                y += HEIGHT // 2
+                arcade.draw_rectangle_filled(x, y, WIDTH - IMARGIN * 2, HEIGHT - IMARGIN * 2, color)
 
     def on_mouse_press(self, x, y, button, modifiers):
         """
