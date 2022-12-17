@@ -47,3 +47,12 @@ def create_cells_rectangles(
             rect.color = color
             rect_grid[row][column] = rect
             sprite_list.append(rect)
+
+
+def create_empty_cell(width, height, x, y):
+    inner = arcade.create_rectangle_filled(x, y, width - 2, height - 2, arcade.color.DARK_GRAY)
+    outline = arcade.create_rectangle_outline(x, y, width - 2, height - 2, arcade.color.GRAY, 2)
+    shape_list = arcade.ShapeElementList()
+    shape_list.append(inner)
+    shape_list.append(outline)
+    return shape_list
