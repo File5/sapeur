@@ -7,7 +7,8 @@ grid on-screen.
 import arcade
 
 from sapeur.graphics.cells import create_cells_triangles, create_cells_rectangles
-from sapeur.graphics.cells import create_empty_cell
+from sapeur.graphics.cells import create_empty_cell, create_text_cell
+from sapeur.model.field import MinesweeperField
 from sapeur.utils.array import GridList
 
 # Set how many rows and columns we will have
@@ -32,13 +33,15 @@ SCREEN_HEIGHT = (HEIGHT + MARGIN) * ROW_COUNT + MARGIN + TOP_SECTION_HEIGHT
 
 class FieldSection(arcade.Section):
 
-    def __init__(self, left: int, bottom: int, width: int, height: int, **kwargs):
+    def __init__(self, left: int, bottom: int, width: int, height: int, field: MinesweeperField, **kwargs):
         super().__init__(left, bottom, width, height, **kwargs)
-        self.grid = GridList(COLUMN_COUNT, ROW_COUNT, default=0)
         self.rect_grid = GridList(COLUMN_COUNT, ROW_COUNT)
         self.opened_grid = GridList(COLUMN_COUNT, ROW_COUNT)
+        self.text_grid = GridList(COLUMN_COUNT, ROW_COUNT)
 
         arcade.set_background_color(arcade.color.BLACK)
+
+        self.field = field
 
     def setup(self):
         self.shape_list = arcade.ShapeElementList()
@@ -55,6 +58,7 @@ class FieldSection(arcade.Section):
             color=arcade.color.DARK_GRAY
         )
         self.open_shape_list = arcade.ShapeElementList()
+        self.text_sprite_list = arcade.SpriteList()
 
     def on_draw(self):
         """
@@ -67,6 +71,7 @@ class FieldSection(arcade.Section):
         self.shape_list.draw()
         self.sprite_list.draw()
         self.open_shape_list.draw()
+        self.text_sprite_list.draw()
         arcade.draw_text(f"FPS: {arcade.get_fps():.2f}", 10, 20, arcade.color.RED, 14)
 
     def on_mouse_press(self, x, y, button, modifiers):
@@ -85,8 +90,8 @@ class FieldSection(arcade.Section):
         if row < ROW_COUNT and column < COLUMN_COUNT:
 
             # Flip the location between 1 and 0.
-            if self.grid[row][column] == 0:
-                self.grid[row][column] = 1
+            if self.field.user_grid[row, column] == 0:
+                self.field.user_grid[row, column] = 1
                 self.rect_grid[row][column].color = arcade.color.GREEN
                 opened_cell = create_empty_cell(
                     WIDTH, HEIGHT, WIDTH * column + WIDTH // 2, HEIGHT * row + HEIGHT // 2
@@ -94,21 +99,31 @@ class FieldSection(arcade.Section):
                 self.opened_grid[row, column] = opened_cell
                 for shape in opened_cell:
                     self.open_shape_list.append(shape)
+                text = str(self.field.content_grid[row, column])
+                text_sprite = create_text_cell(WIDTH * column + WIDTH // 2, HEIGHT * row + HEIGHT // 2, text)
+                self.text_grid[row, column] = text_sprite
+                self.text_sprite_list.append(text_sprite)
             else:
-                self.grid[row][column] = 0
+                self.field.user_grid[row, column] = 0
                 self.rect_grid[row][column].color = arcade.color.DARK_GRAY
                 opened_cell = self.opened_grid[row, column]
                 self.opened_grid[row, column] = None
                 for shape in opened_cell:
                     self.open_shape_list.remove(shape)
+                text_sprite = self.text_grid[row, column]
+                self.text_grid[row, column] = None
+                self.text_sprite_list.remove(text_sprite)
 
 
 class GameView(arcade.View):
 
     def __init__(self, window: arcade.Window = None):
         super().__init__(window)
+
+        self.field = MinesweeperField(ROW_COUNT, COLUMN_COUNT, 10)
+
         self.top_section = arcade.Section(0, SCREEN_HEIGHT - TOP_SECTION_HEIGHT, SCREEN_WIDTH, TOP_SECTION_HEIGHT)
-        self.field_section = FieldSection(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT - TOP_SECTION_HEIGHT)
+        self.field_section = FieldSection(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT - TOP_SECTION_HEIGHT, self.field)
         self.section_manager.add_section(self.top_section)
         self.section_manager.add_section(self.field_section)
 

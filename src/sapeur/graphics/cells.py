@@ -56,3 +56,9 @@ def create_empty_cell(width, height, x, y):
     shape_list.append(inner)
     shape_list.append(outline)
     return shape_list
+
+
+def create_text_cell(x, y, text):
+    text_sprite = arcade.create_text_sprite(
+        text, x, y, arcade.color.BLACK, 12, anchor_x="center", anchor_y="center")
+    return text_sprite
