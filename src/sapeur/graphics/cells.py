@@ -1,6 +1,18 @@
 import arcade
 
 
+TEXT_COLORS = {
+    "1": arcade.color.BLUE,
+    "2": arcade.color.GREEN,
+    "3": arcade.color.RED,
+    "4": arcade.color.DARK_BLUE,
+    "5": arcade.color.DARK_RED,
+    "6": arcade.color.TURQUOISE,
+    "7": arcade.color.BLACK,
+    "8": arcade.color.DARK_GRAY,
+}
+
+
 def create_cells_triangles(row_count, column_count, width, height, upper=False, color=arcade.color.GRAY):
     point_list = []
     upper_m = 1 if upper else 0
@@ -59,6 +71,9 @@ def create_empty_cell(width, height, x, y):
 
 
 def create_text_cell(x, y, text):
+    color = arcade.color.BLACK
+    if text in TEXT_COLORS:
+        color = TEXT_COLORS[text]
     text_sprite = arcade.create_text_sprite(
-        text, x, y, arcade.color.BLACK, 12, anchor_x="center", anchor_y="center")
+        text, x, y, color, 16, anchor_x="center", anchor_y="center")
     return text_sprite
