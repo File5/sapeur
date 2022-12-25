@@ -23,21 +23,17 @@ HEIGHT = WIDTH
 MARGIN = 0
 IMARGIN = 5
 
+TOP_SECTION_HEIGHT = 50
+
 # Do the math to figure out our screen dimensions
 SCREEN_WIDTH = (WIDTH + MARGIN) * COLUMN_COUNT + MARGIN
-SCREEN_HEIGHT = (HEIGHT + MARGIN) * ROW_COUNT + MARGIN
+SCREEN_HEIGHT = (HEIGHT + MARGIN) * ROW_COUNT + MARGIN + TOP_SECTION_HEIGHT
 
 
-class MyGame(arcade.Window):
-    """
-    Main application class.
-    """
+class FieldSection(arcade.Section):
 
-    def __init__(self, width, height):
-        """
-        Set up the application.
-        """
-        super().__init__(width, height)
+    def __init__(self, left: int, bottom: int, width: int, height: int, **kwargs):
+        super().__init__(left, bottom, width, height, **kwargs)
         self.grid = GridList(COLUMN_COUNT, ROW_COUNT, default=0)
         self.rect_grid = GridList(COLUMN_COUNT, ROW_COUNT)
         self.opened_grid = GridList(COLUMN_COUNT, ROW_COUNT)
@@ -65,7 +61,6 @@ class MyGame(arcade.Window):
         Render the screen.
         """
 
-        self.clear()
         # This command has to happen before we start drawing
         arcade.start_render()
         # Draw the grid
@@ -106,6 +101,36 @@ class MyGame(arcade.Window):
                 self.opened_grid[row, column] = None
                 for shape in opened_cell:
                     self.open_shape_list.remove(shape)
+
+
+class GameView(arcade.View):
+
+    def __init__(self, window: arcade.Window = None):
+        super().__init__(window)
+        self.top_section = arcade.Section(0, SCREEN_HEIGHT - TOP_SECTION_HEIGHT, SCREEN_WIDTH, TOP_SECTION_HEIGHT)
+        self.field_section = FieldSection(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT - TOP_SECTION_HEIGHT)
+        self.section_manager.add_section(self.top_section)
+        self.section_manager.add_section(self.field_section)
+
+    def setup(self):
+        self.field_section.setup()
+
+
+class MyGame(arcade.Window):
+    """
+    Main application class.
+    """
+
+    def __init__(self, width, height):
+        """
+        Set up the application.
+        """
+        super().__init__(width, height)
+        self.game_view = GameView(self)
+
+    def setup(self):
+        self.game_view.setup()
+        self.show_view(self.game_view)
 
 
 def main():
