@@ -24,3 +24,9 @@ class GridList(list):
             return super().__getitem__(item[0])[item[1]]
         else:
             return super().__getitem__(item)
+
+    def __setitem__(self, item: Union[int, Tuple[int, int]], value):
+        if isinstance(item, tuple):
+            return super().__getitem__(item[0]).__setitem__(item[1], value)
+        else:
+            return super().__setitem__(item, value)

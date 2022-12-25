@@ -7,6 +7,8 @@ grid on-screen.
 import arcade
 
 from sapeur.graphics.cells import create_cells_triangles, create_cells_rectangles
+from sapeur.graphics.cells import create_empty_cell
+from sapeur.utils.array import GridList
 
 # Set how many rows and columns we will have
 ROW_COUNT = 10
@@ -36,8 +38,9 @@ class MyGame(arcade.Window):
         Set up the application.
         """
         super().__init__(width, height)
-        self.grid = [[0 for x in range(COLUMN_COUNT)] for y in range(ROW_COUNT)]
-        self.rect_grid = [[None for x in range(COLUMN_COUNT)] for y in range(ROW_COUNT)]
+        self.grid = GridList(COLUMN_COUNT, ROW_COUNT, default=0)
+        self.rect_grid = GridList(COLUMN_COUNT, ROW_COUNT)
+        self.opened_grid = GridList(COLUMN_COUNT, ROW_COUNT)
 
         arcade.set_background_color(arcade.color.BLACK)
 
@@ -55,6 +58,7 @@ class MyGame(arcade.Window):
             ROW_COUNT, COLUMN_COUNT, WIDTH, HEIGHT, IMARGIN,
             color=arcade.color.DARK_GRAY
         )
+        self.open_shape_list = arcade.ShapeElementList()
 
     def on_draw(self):
         """
@@ -67,6 +71,7 @@ class MyGame(arcade.Window):
         # Draw the grid
         self.shape_list.draw()
         self.sprite_list.draw()
+        self.open_shape_list.draw()
         arcade.draw_text(f"FPS: {arcade.get_fps():.2f}", 10, 20, arcade.color.RED, 14)
 
     def on_mouse_press(self, x, y, button, modifiers):
@@ -88,9 +93,19 @@ class MyGame(arcade.Window):
             if self.grid[row][column] == 0:
                 self.grid[row][column] = 1
                 self.rect_grid[row][column].color = arcade.color.GREEN
+                opened_cell = create_empty_cell(
+                    WIDTH, HEIGHT, WIDTH * column + WIDTH // 2, HEIGHT * row + HEIGHT // 2
+                )
+                self.opened_grid[row, column] = opened_cell
+                for shape in opened_cell:
+                    self.open_shape_list.append(shape)
             else:
                 self.grid[row][column] = 0
                 self.rect_grid[row][column].color = arcade.color.DARK_GRAY
+                opened_cell = self.opened_grid[row, column]
+                self.opened_grid[row, column] = None
+                for shape in opened_cell:
+                    self.open_shape_list.remove(shape)
 
 
 def main():

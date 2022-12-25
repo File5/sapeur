@@ -41,3 +41,15 @@ def test_grid_list_getitem():
     for row in range(height):
         for col in range(width):
             assert grid[row, col] == (row, col)
+
+def test_grid_list_setitem():
+    width = 4
+    height = 3
+    grid = GridList(width, height, default=None)
+    for row in range(height):
+        grid[row] = [(row, col) for col in range(width)]
+    for row in range(height):
+        for col in range(width):
+            assert grid[row, col] == (row, col)
+            grid[row, col] = (col, row)
+            assert grid[row, col] == (col, row)
