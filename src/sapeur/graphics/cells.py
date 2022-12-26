@@ -70,6 +70,13 @@ def create_empty_cell(width, height, x, y):
     return shape_list
 
 
+def create_pressed_cell(width, height, x, y):
+    empty_cell = arcade.create_rectangle_filled(x, y, width, height, arcade.color.DARK_GRAY)
+    shape_list = arcade.ShapeElementList()
+    shape_list.append(empty_cell)
+    return shape_list
+
+
 def create_text_cell(x, y, text):
     color = arcade.color.BLACK
     if text in TEXT_COLORS:

@@ -7,7 +7,7 @@ grid on-screen.
 import arcade
 
 from sapeur.graphics.cells import create_cells_triangles, create_cells_rectangles
-from sapeur.graphics.cells import create_empty_cell, create_text_cell
+from sapeur.graphics.cells import create_empty_cell, create_pressed_cell, create_text_cell
 from sapeur.model.field import MinesweeperField
 from sapeur.utils.array import GridList
 
@@ -59,6 +59,8 @@ class FieldSection(arcade.Section):
         )
         self.open_shape_list = arcade.ShapeElementList()
         self.text_sprite_list = arcade.SpriteList()
+        self.pressed_cell = None
+        self.pressed_shape_list = None
 
     def on_draw(self):
         """
@@ -72,9 +74,39 @@ class FieldSection(arcade.Section):
         self.sprite_list.draw()
         self.open_shape_list.draw()
         self.text_sprite_list.draw()
+        if self.pressed_shape_list:
+            self.pressed_shape_list.draw()
         arcade.draw_text(f"FPS: {arcade.get_fps():.2f}", 10, 20, arcade.color.RED, 14)
 
+    def _create_pressed_cell(self):
+        row, column = self.pressed_cell
+        if self.field.user_grid[row, column] == 0:
+            pressed_cell = create_pressed_cell(
+                WIDTH, HEIGHT, WIDTH * column + WIDTH // 2, HEIGHT * row + HEIGHT // 2
+            )
+            self.pressed_shape_list = pressed_cell
+        else:
+            self.pressed_shape_list = None
+
+
     def on_mouse_press(self, x, y, button, modifiers):
+        # Change the x/y screen coordinates to grid coordinates
+        column = x // (WIDTH + MARGIN)
+        row = y // (HEIGHT + MARGIN)
+
+        if row < ROW_COUNT and column < COLUMN_COUNT:
+            self.pressed_cell = (row, column)
+            self._create_pressed_cell()
+
+    def on_mouse_motion(self, x, y, dx, dy):
+        column = x // (WIDTH + MARGIN)
+        row = y // (HEIGHT + MARGIN)
+
+        if self.pressed_cell and self.pressed_cell != (row, column):
+            self.pressed_cell = (row, column)
+            self._create_pressed_cell()
+
+    def on_mouse_release(self, x, y, button, modifiers):
         """
         Called when the user presses a mouse button.
         """
@@ -113,6 +145,9 @@ class FieldSection(arcade.Section):
                 text_sprite = self.text_grid[row, column]
                 self.text_grid[row, column] = None
                 self.text_sprite_list.remove(text_sprite)
+        if self.pressed_cell is not None:
+            self.pressed_cell = None
+            self.pressed_shape_list = None
 
 
 class GameView(arcade.View):
