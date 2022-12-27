@@ -28,3 +28,7 @@ class MinesweeperField:
                     for x2 in range(max(x - 1, 0), min(x + 2, self.width)):
                         if self.content_grid[x2, y2] == -1:
                             self.content_grid[x, y] += 1
+
+    @property
+    def flag_count(self):
+        return sum(1 for x in self.user_grid if x == 2)

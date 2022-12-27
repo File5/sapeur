@@ -5,10 +5,13 @@ Show how to use a two-dimensional list/array to back the display of a
 grid on-screen.
 """
 import arcade
+import arcade.gui
+
+from time import time
 
 from sapeur.graphics.cells import create_cells_triangles, create_cells_rectangles
 from sapeur.graphics.cells import create_empty_cell, create_pressed_cell, create_text_cell
-from sapeur.graphics.textures import FlagSSprite
+from sapeur.graphics.textures import FlagSSprite, GeneralIconsTextureSheet, BombSprite
 from sapeur.model.field import MinesweeperField
 from sapeur.utils.array import GridList
 
@@ -32,6 +35,53 @@ SCREEN_WIDTH = (WIDTH + MARGIN) * COLUMN_COUNT + MARGIN
 SCREEN_HEIGHT = (HEIGHT + MARGIN) * ROW_COUNT + MARGIN + TOP_SECTION_HEIGHT
 
 
+class TopSection(arcade.Section):
+    def __init__(self, left: int, bottom: int, width: int, height: int, field: MinesweeperField, **kwargs):
+        super().__init__(left, bottom, width, height, **kwargs)
+
+        self.field = field
+
+    def setup(self):
+        self.manager = arcade.gui.UIManager()
+        self.general_icons = GeneralIconsTextureSheet()
+        self.bomb_sprite = BombSprite(self.general_icons)
+        self.bomb_sprite.width = WIDTH
+        self.bomb_sprite.height = HEIGHT
+        self.bomb_sprite.center_x = self.left + 10 + WIDTH // 2
+        self.bomb_sprite.center_y = self.bottom + TOP_SECTION_HEIGHT // 2
+        self.bomb_counter = arcade.gui.UILabel(
+            self.left + 20 + WIDTH, self.bottom + 10,
+            width=100,
+            text="10", font_name="Kenney Future", font_size=20, text_color=arcade.color.BLACK
+        )
+        self.timer = arcade.gui.UILabel(
+            self.right - 110, self.bottom + 10,
+            width=100,
+            text="0", font_name="Kenney Future", font_size=20, text_color=arcade.color.BLACK,
+            align="right"
+        )
+        self.manager.add(self.bomb_counter)
+        self.manager.add(self.timer)
+        self.start_time = time()
+
+    def on_update(self, delta_time: float):
+        self.bomb_counter.text = str(self.field.mine_count - self.field.flag_count)
+        self.timer.text = str(int(time() - self.start_time))
+
+    def on_draw(self):
+        arcade.start_render()
+        #arcade.draw_point(self.left + 10, self.top + 10, arcade.color.RED, 10)
+        arcade.draw_lrtb_rectangle_filled(self.left, self.right, self.top, self.bottom, arcade.color.DARK_GRAY)
+        self.bomb_sprite.draw()
+        self.manager.draw()
+        # arcade.draw_lrtb_rectangle_outline(
+        #     self.bomb_counter.left, self.bomb_counter.right, self.bomb_counter.top, self.bomb_counter.bottom, arcade.color.MAGENTA, 1
+        # )
+        # arcade.draw_lrtb_rectangle_outline(
+        #     self.bomb_sprite.left, self.bomb_sprite.right, self.bomb_sprite.top, self.bomb_sprite.bottom, arcade.color.CYAN, 1
+        # )
+
+
 class FieldSection(arcade.Section):
 
     def __init__(self, left: int, bottom: int, width: int, height: int, field: MinesweeperField, **kwargs):
@@ -40,8 +90,6 @@ class FieldSection(arcade.Section):
         self.opened_grid = GridList(COLUMN_COUNT, ROW_COUNT)
         self.text_grid = GridList(COLUMN_COUNT, ROW_COUNT)
         self.flag_grid = GridList(COLUMN_COUNT, ROW_COUNT)
-
-        arcade.set_background_color(arcade.color.BLACK)
 
         self.field = field
 
@@ -70,8 +118,6 @@ class FieldSection(arcade.Section):
         Render the screen.
         """
 
-        # This command has to happen before we start drawing
-        arcade.start_render()
         # Draw the grid
         self.shape_list.draw()
         self.sprite_list.draw()
@@ -187,12 +233,13 @@ class GameView(arcade.View):
 
         self.field = MinesweeperField(ROW_COUNT, COLUMN_COUNT, 10)
 
-        self.top_section = arcade.Section(0, SCREEN_HEIGHT - TOP_SECTION_HEIGHT, SCREEN_WIDTH, TOP_SECTION_HEIGHT)
+        self.top_section = TopSection(0, SCREEN_HEIGHT - TOP_SECTION_HEIGHT, SCREEN_WIDTH, TOP_SECTION_HEIGHT, self.field)
         self.field_section = FieldSection(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT - TOP_SECTION_HEIGHT, self.field)
         self.section_manager.add_section(self.top_section)
         self.section_manager.add_section(self.field_section)
 
     def setup(self):
+        self.top_section.setup()
         self.field_section.setup()
 
 
