@@ -33,3 +33,15 @@ class TreeSprite(arcade.Sprite):
 class FlagSprite(arcade.Sprite):
     def __init__(self, **kwargs):
         super().__init__(":resources:images/items/flagRed2.png", **kwargs)
+
+
+class FlagBSprite(arcade.Sprite):
+    def __init__(self, color, **kwargs):
+        assert color in ("red", "yellow", "green"), "unsupported color"
+        super().__init__(f"assets/flags/{color}_flag.png", **kwargs)
+
+
+class FlagSSprite(arcade.Sprite):
+    def __init__(self, color, **kwargs):
+        assert color in ("red", "yellow", "green"), "unsupported color"
+        super().__init__(f"assets/flags_s/flags_s_{color}.png", **kwargs)
