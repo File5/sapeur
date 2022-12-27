@@ -29,6 +29,19 @@ class MinesweeperField:
                         if self.content_grid[x2, y2] == -1:
                             self.content_grid[x, y] += 1
 
+    def auto_open(self, x, y):
+        if self.user_grid[x, y] != 1 or self.content_grid[x, y] != 0:
+            return
+        to_open = [(x, y)]
+        while to_open:
+            x, y = to_open.pop()
+            self.user_grid[x, y] = 1
+            if self.content_grid[x, y] == 0:
+                for y2 in range(max(y - 1, 0), min(y + 2, self.height)):
+                    for x2 in range(max(x - 1, 0), min(x + 2, self.width)):
+                        if self.user_grid[x2, y2] == 0:
+                            to_open.append((x2, y2))
+
     @property
     def flag_count(self):
         return sum(1 for x in self.user_grid if x == 2)
