@@ -223,6 +223,11 @@ class FieldSection(arcade.Section):
                 if self.field.content_grid[row, column] == -1:
                     self._create_bomb_cell(row, column)
 
+    def _check_win(self):
+        if self.field.is_win():
+            self.field.game_ended = True
+            self._show_bombs()
+
     def on_mouse_press(self, x, y, button, modifiers):
         # Change the x/y screen coordinates to grid coordinates
         column = x // (WIDTH + MARGIN)
@@ -270,6 +275,7 @@ class FieldSection(arcade.Section):
                 else:
                     self.field.auto_open(row, column)
                     self._update_opened_cells()
+                self._check_win()
 
             elif self.field.user_grid[row, column] == 1:
                 self.field.user_grid[row, column] = 0
@@ -293,6 +299,8 @@ class FieldSection(arcade.Section):
                 flag_sprite.height = HEIGHT
                 self.flag_grid[row, column] = flag_sprite
                 self.user_sprite_list.append(flag_sprite)
+
+                self._check_win()
             elif self.field.user_grid[row, column] == 2:
                 self.field.user_grid[row, column] = 0
                 self.rect_grid[row][column].color = arcade.color.DARK_GRAY

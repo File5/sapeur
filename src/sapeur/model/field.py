@@ -46,3 +46,10 @@ class MinesweeperField:
     @property
     def flag_count(self):
         return sum(1 for x in self.user_grid if x == 2)
+
+    def is_win(self):
+        return self.flag_count == self.mine_count and all(
+            self.user_grid[x, y] == 2 if self.content_grid[x, y] == -1 else self.user_grid[x, y] == 1
+            for y in range(self.height)
+            for x in range(self.width)
+        )
