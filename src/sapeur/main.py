@@ -16,8 +16,8 @@ from sapeur.model.field import MinesweeperField
 from sapeur.utils.array import GridList
 
 # Set how many rows and columns we will have
-ROW_COUNT = 10
-COLUMN_COUNT = 10
+ROW_COUNT = 9
+COLUMN_COUNT = 9
 
 # This sets the WIDTH and HEIGHT of each grid location
 WIDTH = 30
