@@ -138,19 +138,40 @@ class FieldSection(arcade.Section):
         else:
             self.pressed_shape_list = None
 
+    def _create_opened_cell(self, row, column):
+        opened_cell = create_empty_cell(
+            WIDTH, HEIGHT, WIDTH * column + WIDTH // 2, HEIGHT * row + HEIGHT // 2
+        )
+        self.opened_grid[row, column] = opened_cell
+        for shape in opened_cell:
+            self.open_shape_list.append(shape)
+
+    def _remove_opened_cell(self, row, column):
+        opened_cell = self.opened_grid[row, column]
+        if opened_cell is not None:
+            self.opened_grid[row, column] = None
+            for shape in opened_cell:
+                self.open_shape_list.remove(shape)
+
+    def _create_text_cell(self, row, column, cell_content):
+        text = str(cell_content)
+        text_sprite = create_text_cell(WIDTH * column + WIDTH // 2, HEIGHT * row + HEIGHT // 2, text)
+        self.text_grid[row, column] = text_sprite
+        self.text_sprite_list.append(text_sprite)
+
+    def _remove_text_cell(self, row, column):
+        text_sprite = self.text_grid[row, column]
+        if text_sprite:
+            self.text_grid[row, column] = None
+            self.text_sprite_list.remove(text_sprite)
+
     def _update_opened_cells(self):
         for row in range(self.field.user_grid.height):
             for column in range(self.field.user_grid.width):
                 if self.field.user_grid[row, column] == 1:
                     opened_cell = self.opened_grid[row, column]
                     if opened_cell is None:
-                        opened_cell = create_empty_cell(
-                            WIDTH, HEIGHT, WIDTH * column + WIDTH // 2, HEIGHT * row + HEIGHT // 2
-                        )
-                        self.opened_grid[row, column] = opened_cell
-                        for shape in opened_cell:
-                            self.open_shape_list.append(shape)
-
+                        self._create_opened_cell(row, column)
                         cell_content = self.field.content_grid[row, column]
                         if cell_content != 0:
                             text = str(cell_content)
@@ -185,18 +206,10 @@ class FieldSection(arcade.Section):
             if self.field.user_grid[row, column] == 0:
                 self.field.user_grid[row, column] = 1
                 self.rect_grid[row][column].color = arcade.color.GREEN
-                opened_cell = create_empty_cell(
-                    WIDTH, HEIGHT, WIDTH * column + WIDTH // 2, HEIGHT * row + HEIGHT // 2
-                )
-                self.opened_grid[row, column] = opened_cell
-                for shape in opened_cell:
-                    self.open_shape_list.append(shape)
+                self._create_opened_cell(row, column)
                 cell_content = self.field.content_grid[row, column]
                 if cell_content != 0:
-                    text = str(cell_content)
-                    text_sprite = create_text_cell(WIDTH * column + WIDTH // 2, HEIGHT * row + HEIGHT // 2, text)
-                    self.text_grid[row, column] = text_sprite
-                    self.text_sprite_list.append(text_sprite)
+                    self._create_text_cell(row, column, cell_content)
                 else:
                     self.field.auto_open(row, column)
                     self._update_opened_cells()
@@ -204,14 +217,8 @@ class FieldSection(arcade.Section):
             elif self.field.user_grid[row, column] == 1:
                 self.field.user_grid[row, column] = 0
                 self.rect_grid[row][column].color = arcade.color.DARK_GRAY
-                opened_cell = self.opened_grid[row, column]
-                self.opened_grid[row, column] = None
-                for shape in opened_cell:
-                    self.open_shape_list.remove(shape)
-                text_sprite = self.text_grid[row, column]
-                if text_sprite:
-                    self.text_grid[row, column] = None
-                    self.text_sprite_list.remove(text_sprite)
+                self._remove_opened_cell(row, column)
+                self._remove_text_cell(row, column)
         if self.pressed_cell is not None:
             self.pressed_cell = None
             self.pressed_shape_list = None
