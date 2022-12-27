@@ -45,3 +45,14 @@ class FlagSSprite(arcade.Sprite):
     def __init__(self, color, **kwargs):
         assert color in ("red", "yellow", "green"), "unsupported color"
         super().__init__(f"assets/flags_s/flags_s_{color}.png", **kwargs)
+
+
+def FaceTexture(face):
+    assert face in ("smile", "ohh", "win", "dead"), "unsupported face"
+    return arcade.load_texture(f"assets/faces/{face}.png")
+
+
+class FaceSprite(arcade.Sprite):
+    def __init__(self, face, **kwargs):
+        assert face in ("smile", "ohh", "win", "dead"), "unsupported face"
+        super().__init__(f"assets/faces/{face}", **kwargs)

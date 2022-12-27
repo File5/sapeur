@@ -13,6 +13,7 @@ from sapeur.graphics.animations import ExplosionAnimation
 from sapeur.graphics.cells import create_cells_triangles, create_cells_rectangles
 from sapeur.graphics.cells import create_empty_cell, create_pressed_cell, create_text_cell
 from sapeur.graphics.textures import FlagSSprite, GeneralIconsTextureSheet, BombSprite
+from sapeur.graphics.textures import FaceTexture
 from sapeur.model.field import MinesweeperField
 from sapeur.utils.array import GridList
 
@@ -61,9 +62,24 @@ class TopSection(arcade.Section):
             text="0", font_name="Kenney Future", font_size=20, text_color=arcade.color.BLACK,
             align="right"
         )
+        self.face_textures = {
+            "smile": FaceTexture("smile"),
+            "ohh": FaceTexture("ohh"),
+            "win": FaceTexture("win"),
+            "dead": FaceTexture("dead"),
+        }
+        self.face_button = arcade.gui.UITextureButton(
+            self.left + SCREEN_WIDTH // 2 - WIDTH // 2, self.bottom + (TOP_SECTION_HEIGHT - HEIGHT) // 2,
+            WIDTH, HEIGHT, texture=self.face_textures["smile"]
+        )
         self.manager.add(self.bomb_counter)
         self.manager.add(self.timer)
+        self.manager.add(self.face_button)
         self.start_time = time()
+
+    def set_face(self, face: str):
+        assert face in self.face_textures, "unsupported face"
+        self.face_button.texture = self.face_textures[face]
 
     def on_update(self, delta_time: float):
         self.bomb_counter.text = str(self.field.mine_count - self.field.flag_count)
@@ -82,11 +98,14 @@ class TopSection(arcade.Section):
         # arcade.draw_lrtb_rectangle_outline(
         #     self.bomb_sprite.left, self.bomb_sprite.right, self.bomb_sprite.top, self.bomb_sprite.bottom, arcade.color.CYAN, 1
         # )
+        # arcade.draw_lrtb_rectangle_outline(
+        #     self.face_button.left, self.face_button.right, self.face_button.top, self.face_button.bottom, arcade.color.BLUE, 1
+        # )
 
 
 class FieldSection(arcade.Section):
 
-    def __init__(self, left: int, bottom: int, width: int, height: int, field: MinesweeperField, **kwargs):
+    def __init__(self, left: int, bottom: int, width: int, height: int, field: MinesweeperField, top_section: TopSection, **kwargs):
         super().__init__(left, bottom, width, height, **kwargs)
         self.rect_grid = GridList(COLUMN_COUNT, ROW_COUNT)
         self.opened_grid = GridList(COLUMN_COUNT, ROW_COUNT)
@@ -95,6 +114,7 @@ class FieldSection(arcade.Section):
         self.content_grid = GridList(COLUMN_COUNT, ROW_COUNT)
 
         self.field = field
+        self.top_section = top_section
 
     def setup(self):
         self.shape_list = arcade.ShapeElementList()
@@ -227,6 +247,7 @@ class FieldSection(arcade.Section):
         if self.field.is_win():
             self.field.game_ended = True
             self._show_bombs()
+            self.top_section.set_face("win")
 
     def on_mouse_press(self, x, y, button, modifiers):
         # Change the x/y screen coordinates to grid coordinates
@@ -240,6 +261,7 @@ class FieldSection(arcade.Section):
             if button == arcade.MOUSE_BUTTON_LEFT:
                 self.pressed_cell = (row, column)
                 self._create_pressed_cell()
+                self.top_section.set_face("ohh")
 
     def on_mouse_motion(self, x, y, dx, dy):
         column = x // (WIDTH + MARGIN)
@@ -271,6 +293,7 @@ class FieldSection(arcade.Section):
                         self.field.game_ended = True
                         self._show_explosion(row, column)
                         self._show_bombs()
+                        self.top_section.set_face("dead")
                     self._create_text_cell(row, column, cell_content)
                 else:
                     self.field.auto_open(row, column)
@@ -285,6 +308,8 @@ class FieldSection(arcade.Section):
         if self.pressed_cell is not None:
             self.pressed_cell = None
             self.pressed_shape_list = None
+        if not self.field.game_ended:
+            self.top_section.set_face("smile")
 
     def on_right_mouse_release(self, column, row):
         if row < ROW_COUNT and column < COLUMN_COUNT:
@@ -332,7 +357,7 @@ class GameView(arcade.View):
         self.field = MinesweeperField(ROW_COUNT, COLUMN_COUNT, 10)
 
         self.top_section = TopSection(0, SCREEN_HEIGHT - TOP_SECTION_HEIGHT, SCREEN_WIDTH, TOP_SECTION_HEIGHT, self.field)
-        self.field_section = FieldSection(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT - TOP_SECTION_HEIGHT, self.field)
+        self.field_section = FieldSection(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT - TOP_SECTION_HEIGHT, self.field, self.top_section)
         self.section_manager.add_section(self.top_section)
         self.section_manager.add_section(self.field_section)
 
