@@ -9,6 +9,7 @@ import arcade.gui
 
 from time import time
 
+from sapeur.graphics.animations import ExplosionAnimation
 from sapeur.graphics.cells import create_cells_triangles, create_cells_rectangles
 from sapeur.graphics.cells import create_empty_cell, create_pressed_cell, create_text_cell
 from sapeur.graphics.textures import FlagSSprite, GeneralIconsTextureSheet, BombSprite
@@ -116,6 +117,13 @@ class FieldSection(arcade.Section):
         self.user_sprite_list = arcade.SpriteList()
         self.content_sprite_list = arcade.SpriteList()
         self.general_icons = GeneralIconsTextureSheet()
+        self.explosion_animation = ExplosionAnimation()
+        self.explosion_animation.center_x = SCREEN_WIDTH // 2
+        self.explosion_animation.center_y = (SCREEN_HEIGHT - TOP_SECTION_HEIGHT) // 2
+
+    def on_update(self, delta_time: float):
+        super().on_update(delta_time)
+        self.explosion_animation.update_animation(delta_time)
 
     def on_draw(self):
         """
@@ -131,6 +139,7 @@ class FieldSection(arcade.Section):
             self.pressed_shape_list.draw()
         self.content_sprite_list.draw()
         self.user_sprite_list.draw()
+        self.explosion_animation.draw()
         arcade.draw_text(f"FPS: {arcade.get_fps():.2f}", 10, 20, arcade.color.RED, 14)
 
     def _create_pressed_cell(self):
@@ -185,6 +194,12 @@ class FieldSection(arcade.Section):
         if bomb_sprite and type(bomb_sprite) is BombSprite:
             self.content_grid[row, column] = None
             self.content_sprite_list.remove(bomb_sprite)
+
+    def _show_explosion(self, row, column):
+        self.explosion_animation.center_x = WIDTH * column + WIDTH // 2
+        self.explosion_animation.center_y = HEIGHT * row + HEIGHT // 2
+        self.explosion_animation.reset()
+        self.explosion_animation.running = True
 
     def _update_opened_cells(self):
         for row in range(self.field.user_grid.height):
@@ -247,6 +262,7 @@ class FieldSection(arcade.Section):
                 if cell_content != 0:
                     if cell_content == -1:
                         self.field.game_ended = True
+                        self._show_explosion(row, column)
                         self._show_bombs()
                     self._create_text_cell(row, column, cell_content)
                 else:
