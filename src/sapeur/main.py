@@ -8,6 +8,7 @@ import arcade
 
 from sapeur.graphics.cells import create_cells_triangles, create_cells_rectangles
 from sapeur.graphics.cells import create_empty_cell, create_pressed_cell, create_text_cell
+from sapeur.graphics.textures import FlagSSprite
 from sapeur.model.field import MinesweeperField
 from sapeur.utils.array import GridList
 
@@ -38,6 +39,7 @@ class FieldSection(arcade.Section):
         self.rect_grid = GridList(COLUMN_COUNT, ROW_COUNT)
         self.opened_grid = GridList(COLUMN_COUNT, ROW_COUNT)
         self.text_grid = GridList(COLUMN_COUNT, ROW_COUNT)
+        self.flag_grid = GridList(COLUMN_COUNT, ROW_COUNT)
 
         arcade.set_background_color(arcade.color.BLACK)
 
@@ -61,6 +63,7 @@ class FieldSection(arcade.Section):
         self.text_sprite_list = arcade.SpriteList()
         self.pressed_cell = None
         self.pressed_shape_list = None
+        self.user_sprite_list = arcade.SpriteList()
 
     def on_draw(self):
         """
@@ -76,6 +79,7 @@ class FieldSection(arcade.Section):
         self.text_sprite_list.draw()
         if self.pressed_shape_list:
             self.pressed_shape_list.draw()
+        self.user_sprite_list.draw()
         arcade.draw_text(f"FPS: {arcade.get_fps():.2f}", 10, 20, arcade.color.RED, 14)
 
     def _create_pressed_cell(self):
@@ -95,8 +99,9 @@ class FieldSection(arcade.Section):
         row = y // (HEIGHT + MARGIN)
 
         if row < ROW_COUNT and column < COLUMN_COUNT:
-            self.pressed_cell = (row, column)
-            self._create_pressed_cell()
+            if button == arcade.MOUSE_BUTTON_LEFT:
+                self.pressed_cell = (row, column)
+                self._create_pressed_cell()
 
     def on_mouse_motion(self, x, y, dx, dy):
         column = x // (WIDTH + MARGIN)
@@ -106,17 +111,7 @@ class FieldSection(arcade.Section):
             self.pressed_cell = (row, column)
             self._create_pressed_cell()
 
-    def on_mouse_release(self, x, y, button, modifiers):
-        """
-        Called when the user presses a mouse button.
-        """
-
-        # Change the x/y screen coordinates to grid coordinates
-        column = x // (WIDTH + MARGIN)
-        row = y // (HEIGHT + MARGIN)
-
-        print(f"Click coordinates: ({x}, {y}). Grid coordinates: ({row}, {column})")
-
+    def on_left_mouse_release(self, column, row):
         # Make sure we are on-grid. It is possible to click in the upper right
         # corner in the margin and go to a grid location that doesn't exist
         if row < ROW_COUNT and column < COLUMN_COUNT:
@@ -135,7 +130,7 @@ class FieldSection(arcade.Section):
                 text_sprite = create_text_cell(WIDTH * column + WIDTH // 2, HEIGHT * row + HEIGHT // 2, text)
                 self.text_grid[row, column] = text_sprite
                 self.text_sprite_list.append(text_sprite)
-            else:
+            elif self.field.user_grid[row, column] == 1:
                 self.field.user_grid[row, column] = 0
                 self.rect_grid[row][column].color = arcade.color.DARK_GRAY
                 opened_cell = self.opened_grid[row, column]
@@ -149,6 +144,41 @@ class FieldSection(arcade.Section):
             self.pressed_cell = None
             self.pressed_shape_list = None
 
+    def on_right_mouse_release(self, column, row):
+        if row < ROW_COUNT and column < COLUMN_COUNT:
+            # Flip the location between 1 and 0.
+            if self.field.user_grid[row, column] == 0:
+                self.field.user_grid[row, column] = 2
+
+                flag_sprite = FlagSSprite("red")
+                flag_sprite.center_x = WIDTH * column + WIDTH // 2
+                flag_sprite.center_y = HEIGHT * row + HEIGHT // 2
+                flag_sprite.width = WIDTH
+                flag_sprite.height = HEIGHT
+                self.flag_grid[row, column] = flag_sprite
+                self.user_sprite_list.append(flag_sprite)
+            elif self.field.user_grid[row, column] == 2:
+                self.field.user_grid[row, column] = 0
+                self.rect_grid[row][column].color = arcade.color.DARK_GRAY
+
+                flag_sprite = self.flag_grid[row, column]
+                self.flag_grid[row, column] = None
+                self.user_sprite_list.remove(flag_sprite)
+
+    def on_mouse_release(self, x, y, button, modifiers):
+        """
+        Called when the user presses a mouse button.
+        """
+
+        # Change the x/y screen coordinates to grid coordinates
+        column = x // (WIDTH + MARGIN)
+        row = y // (HEIGHT + MARGIN)
+
+        print(f"Click coordinates: ({x}, {y}). Grid coordinates: ({row}, {column})")
+        if button == arcade.MOUSE_BUTTON_LEFT:
+            self.on_left_mouse_release(column, row)
+        elif button == arcade.MOUSE_BUTTON_RIGHT:
+            self.on_right_mouse_release(column, row)
 
 class GameView(arcade.View):
 
