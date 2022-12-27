@@ -120,6 +120,7 @@ class FieldSection(arcade.Section):
         self.explosion_animation = ExplosionAnimation()
         self.explosion_animation.center_x = SCREEN_WIDTH // 2
         self.explosion_animation.center_y = (SCREEN_HEIGHT - TOP_SECTION_HEIGHT) // 2
+        self.explosion_sound = arcade.Sound(":resources:sounds/explosion1.wav")
 
     def on_update(self, delta_time: float):
         super().on_update(delta_time)
@@ -200,6 +201,7 @@ class FieldSection(arcade.Section):
         self.explosion_animation.center_y = HEIGHT * row + HEIGHT // 2
         self.explosion_animation.reset()
         self.explosion_animation.running = True
+        self.explosion_sound.play()
 
     def _update_opened_cells(self):
         for row in range(self.field.user_grid.height):
