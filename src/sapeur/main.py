@@ -66,7 +66,8 @@ class TopSection(arcade.Section):
 
     def on_update(self, delta_time: float):
         self.bomb_counter.text = str(self.field.mine_count - self.field.flag_count)
-        self.timer.text = str(int(time() - self.start_time))
+        if not self.field.game_ended:
+            self.timer.text = str(int(time() - self.start_time))
 
     def on_draw(self):
         arcade.start_render()
@@ -90,6 +91,7 @@ class FieldSection(arcade.Section):
         self.opened_grid = GridList(COLUMN_COUNT, ROW_COUNT)
         self.text_grid = GridList(COLUMN_COUNT, ROW_COUNT)
         self.flag_grid = GridList(COLUMN_COUNT, ROW_COUNT)
+        self.content_grid = GridList(COLUMN_COUNT, ROW_COUNT)
 
         self.field = field
 
@@ -112,6 +114,8 @@ class FieldSection(arcade.Section):
         self.pressed_cell = None
         self.pressed_shape_list = None
         self.user_sprite_list = arcade.SpriteList()
+        self.content_sprite_list = arcade.SpriteList()
+        self.general_icons = GeneralIconsTextureSheet()
 
     def on_draw(self):
         """
@@ -125,6 +129,7 @@ class FieldSection(arcade.Section):
         self.text_sprite_list.draw()
         if self.pressed_shape_list:
             self.pressed_shape_list.draw()
+        self.content_sprite_list.draw()
         self.user_sprite_list.draw()
         arcade.draw_text(f"FPS: {arcade.get_fps():.2f}", 10, 20, arcade.color.RED, 14)
 
@@ -165,6 +170,22 @@ class FieldSection(arcade.Section):
             self.text_grid[row, column] = None
             self.text_sprite_list.remove(text_sprite)
 
+    def _create_bomb_cell(self, row, column):
+        bomb_sprite = BombSprite(self.general_icons)
+        bomb_sprite.width = WIDTH
+        bomb_sprite.height = HEIGHT
+        bomb_sprite.center_x = WIDTH * column + WIDTH // 2
+        bomb_sprite.center_y = HEIGHT * row + HEIGHT // 2
+
+        self.content_grid[row, column] = bomb_sprite
+        self.content_sprite_list.append(bomb_sprite)
+
+    def _remove_bomb_cell(self, row, column):
+        bomb_sprite = self.content_grid[row, column]
+        if bomb_sprite and type(bomb_sprite) is BombSprite:
+            self.content_grid[row, column] = None
+            self.content_sprite_list.remove(bomb_sprite)
+
     def _update_opened_cells(self):
         for row in range(self.field.user_grid.height):
             for column in range(self.field.user_grid.width):
@@ -179,10 +200,19 @@ class FieldSection(arcade.Section):
                             self.text_grid[row, column] = text_sprite
                             self.text_sprite_list.append(text_sprite)
 
+    def _show_bombs(self):
+        for row in range(self.field.content_grid.height):
+            for column in range(self.field.content_grid.width):
+                if self.field.content_grid[row, column] == -1:
+                    self._create_bomb_cell(row, column)
+
     def on_mouse_press(self, x, y, button, modifiers):
         # Change the x/y screen coordinates to grid coordinates
         column = x // (WIDTH + MARGIN)
         row = y // (HEIGHT + MARGIN)
+
+        if self.field.game_ended:
+            return
 
         if row < ROW_COUNT and column < COLUMN_COUNT:
             if button == arcade.MOUSE_BUTTON_LEFT:
@@ -193,11 +223,17 @@ class FieldSection(arcade.Section):
         column = x // (WIDTH + MARGIN)
         row = y // (HEIGHT + MARGIN)
 
+        if self.field.game_ended:
+            return
+
         if self.pressed_cell and self.pressed_cell != (row, column):
             self.pressed_cell = (row, column)
             self._create_pressed_cell()
 
     def on_left_mouse_release(self, column, row):
+        if self.field.game_ended:
+            return
+
         # Make sure we are on-grid. It is possible to click in the upper right
         # corner in the margin and go to a grid location that doesn't exist
         if row < ROW_COUNT and column < COLUMN_COUNT:
@@ -209,6 +245,9 @@ class FieldSection(arcade.Section):
                 self._create_opened_cell(row, column)
                 cell_content = self.field.content_grid[row, column]
                 if cell_content != 0:
+                    if cell_content == -1:
+                        self.field.game_ended = True
+                        self._show_bombs()
                     self._create_text_cell(row, column, cell_content)
                 else:
                     self.field.auto_open(row, column)

@@ -8,6 +8,7 @@ class MinesweeperField:
         self.mine_count = mine_count
         self.content_grid = GridList(width, height, 0)
         self.user_grid = GridList(width, height, 0)
+        self.game_ended = False
 
         self.generate_mines()
 
