@@ -1,3 +1,4 @@
+import arcade
 from typing import Union, Tuple
 from sapeur.utils.texture import TextureSheet, TextureSheetSprite
 
@@ -22,3 +23,13 @@ class BombSprite(GeneralIconsSprite):
 class WoodSprite(GeneralIconsSprite):
     def __init__(self, general_icons: GeneralIconsTextureSheet, **kwargs):
         super().__init__(general_icons, (18, 1), **kwargs)
+
+
+class TreeSprite(arcade.Sprite):
+    def __init__(self, **kwargs):
+        super().__init__("assets/tree.png", **kwargs)
+
+
+class FlagSprite(arcade.Sprite):
+    def __init__(self, **kwargs):
+        super().__init__(":resources:images/items/flagRed2.png", **kwargs)
