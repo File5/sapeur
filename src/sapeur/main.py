@@ -4,6 +4,13 @@ Array Backed Grid
 Show how to use a two-dimensional list/array to back the display of a
 grid on-screen.
 """
+
+# Requires pyglet>=2.0.6
+# (https://github.com/pyglet/pyglet/commit/e374e81c7b2128b24da52707e4f233b19749c40e)
+# Fix suggested by https://github.com/pyglet/pyglet/issues/171#issuecomment-1624918955
+import pyglet
+pyglet.options['osx_alt_loop'] = True
+
 import arcade
 
 from sapeur.graphics.cells import create_cells_triangles, create_cells_rectangles
